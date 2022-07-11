@@ -38,11 +38,7 @@
 
 				<button type="button" id="insert" class="btn btn-success">Ins</button>
 
-				<button type="button" id="create" class="btn btn-success">Create Table</button>
-
-				<button type="button" id="remove" class="btn btn-success">Delete Table</button>
-
-				<button type="button" id="list" class="btn btn-success">Fetch Record</button>
+				<button type="button" id="list" class="btn btn-success">Вывести таблицу</button>
 			</fieldset>
 		</form>
 
@@ -69,45 +65,29 @@
 
 
 		$(function () {
-			loadData();
+			db.transaction(function (transaction) {
+				var sql = "CREATE TABLE data " +
+					"(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
+					"item VARCHAR(100) NOT NULL," +
+					"quantity INT(5) NOT NULL)";
+				transaction.executeSql(sql, undefined)
+			})
 
-			$("#create").click(function () {
-				db.transaction(function (transaction) {
-					var sql = "CREATE TABLE items " +
-						"(id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT," +
-						"item VARCHAR(100) NOT NULL," +
-						"quantity INT(5) NOT NULL)";
-					transaction.executeSql(sql, undefined)
-				});
+			$(function () {
+				loadData();
+
 			});
 
-
-
 			//Заготовка для вставки данных
-
 			$("#insert").click(function () {
 				var item = 'und'
 				var qty = 'und'
 				db.transaction(function (transaction) {
 					var sql = "INSERT INTO items(item,quantity) VALUES(?,?)";
-					transaction.executeSql(sql, [item, qty],
-						function (err) {
-							alert(err.message)
-						})
+					transaction.executeSql(sql, [item, qty])
+					loadData();
 				})
 			})
-
-			$("#remove").click(function () {
-				if (!confirm("Вы действительно хотите удалить таблицу?", "")) return;;
-				db.transaction(function (transaction) {
-					var sql = "DROP TABLE items";
-					transaction.executeSql(sql, undefined, function () {
-						alert("Таблица удалена")
-					}, function (transaction, err) {
-						alert(err.message);
-					})
-				});
-			});
 
 			//Вывод данных в таблицу
 			$("#list").click(function () {
@@ -141,7 +121,7 @@
 			// создание excel файла
 			$('#create-excel').click(function () {
 				$("#itemlist").table2excel({
-					filename: "outputFile- " + new Date().toLocaleString().replace('GMT+0300 (Москва, стандартное время)', '') + ".xls", 
+					filename: "outputFile- " + new Date().toLocaleString().replace('GMT+0300 (Москва, стандартное время)', '') + ".xls",
 				});
 			});
 		});
